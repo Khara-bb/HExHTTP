@@ -4,16 +4,7 @@
 """
 Prints a colorful ASCII art banner along with a brief description of the HExHTTP tool.
 """
-
-try:
-    from _version import __version__
-except ImportError:
-    __version__ = "v2.0"
-
-
-from static.version import check_for_update
-
-
+from static.version import check_for_update, __version__
 
 def print_banner() -> None:
     """

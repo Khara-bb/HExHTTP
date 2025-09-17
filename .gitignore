@@ -6,3 +6,4 @@ dev/
 logs/*.log
 dist
 *.egg-info
+.mypy_cache/
