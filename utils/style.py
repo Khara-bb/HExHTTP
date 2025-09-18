@@ -1,5 +1,6 @@
 class Colors:
     """Colors constants for the output messages"""
+
     RED = "\033[31m"
     YELLOW = "\033[33m"
     GREEN = "\033[32m"
@@ -11,6 +12,7 @@ class Colors:
     REDIR = "\033[38;2;245;203;92m"
     RESET = "\033[0m"
 
+
 class Identify:
-    behavior =  "\033[33m└──   INTERESTING BEHAVIOR  \033[0m"
+    behavior = "\033[33m└──   INTERESTING BEHAVIOR  \033[0m"
     confirmed = "\033[31m└── VULNERABILITY CONFIRMED \033[0m"

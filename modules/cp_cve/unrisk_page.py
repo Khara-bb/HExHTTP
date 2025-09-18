@@ -1,16 +1,26 @@
 from bs4 import BeautifulSoup
-from utils.utils import requests, re 
+from utils.utils import requests, re
 from urllib.parse import urljoin
 
 COMMON_PATHS = [
-    "accessibilite", "mentions-legales", "mentions", "legal", "cgu", "terms", "conditions",
-    "terms-of-service", "privacy", "politique-de-confidentialite", "faq"
+    "accessibilite",
+    "mentions-legales",
+    "mentions",
+    "legal",
+    "cgu",
+    "terms",
+    "conditions",
+    "terms-of-service",
+    "privacy",
+    "politique-de-confidentialite",
+    "faq",
 ]
 
 COMMON_REGEX = re.compile(
     r"|".join(re.escape(path).replace("-", r"[-\s]*") for path in COMMON_PATHS),
-    re.IGNORECASE
+    re.IGNORECASE,
 )
+
 
 def get_unrisk_page(base_url, response):
     soup = BeautifulSoup(response.text, "html.parser")

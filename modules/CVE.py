@@ -40,17 +40,17 @@ def run_cve_modules(url, s, req_main, domain, custom_header, authent, human):
         nextjs_204(url)
         apache_cp(url, authent)
 
-        #TODO:https://labs.withsecure.com/advisories/plone-cms-cache-poisoning-xss-vulnerability
-        #TODO:https://github.com/ZephrFish/F5-CVE-2022-1388-Exploit/tree/main
+        # TODO:https://labs.withsecure.com/advisories/plone-cms-cache-poisoning-xss-vulnerability
+        # TODO:https://github.com/ZephrFish/F5-CVE-2022-1388-Exploit/tree/main
 
     except requests.Timeout:
-        #print(f"request timeout {url} {p}")
+        # print(f"request timeout {url} {p}")
         pass
     except KeyboardInterrupt:
         print("Exiting")
         sys.exit()
     except Exception as e:
-        #print(f"Error : {e}")
+        # print(f"Error : {e}")
         logger.exception(e)
         pass
 

@@ -9,7 +9,10 @@ EXCLUDE_RESPONSE = [200, 301, 302, 403, 404, 307, 308, 303, 429]
 
 logger = configure_logger(__name__)
 
-def verify_cache_poisoning(VULN_TYPE, conn, url, payload, main_status_code, authent, host):
+
+def verify_cache_poisoning(
+    VULN_TYPE, conn, url, payload, main_status_code, authent, host
+):
     cb = random.randrange(9999)
     res_status = 0
     try:
@@ -33,10 +36,10 @@ def verify_cache_poisoning(VULN_TYPE, conn, url, payload, main_status_code, auth
             response = conn.getresponse()
             res_status = response.status
             conn.close()
-        #print(url)
+        # print(url)
         uri = f"{url}?CPDoS={cb}"
-        #print(uri)
-        req =  requests.get(uri, auth=authent, timeout=10)
+        # print(uri)
+        req = requests.get(uri, auth=authent, timeout=10)
         if req.status_code == res_status and res_status != main_status_code:
             reason = f"DIFFERENT STATUS-CODE  {main_status_code} > {response.status}"
             print(
@@ -47,7 +50,7 @@ def verify_cache_poisoning(VULN_TYPE, conn, url, payload, main_status_code, auth
 
 
 def duplicate_headers(conn, url, mh, main_status_code, authent):
-    #VULN_TYPE = "DH"
+    # VULN_TYPE = "DH"
     cb = random.randrange(9999)
 
     try:
@@ -59,8 +62,11 @@ def duplicate_headers(conn, url, mh, main_status_code, authent):
 
         response = conn.getresponse()
 
-        if response.status != main_status_code and response.status not in EXCLUDE_RESPONSE:
-            #print(f"[{url}?cb={cb}] Statut : {response.status}, Raison : {response.reason}")
+        if (
+            response.status != main_status_code
+            and response.status not in EXCLUDE_RESPONSE
+        ):
+            # print(f"[{url}?cb={cb}] Statut : {response.status}, Raison : {response.reason}")
             for rh in response.headers:
                 if "age" in rh.lower() or "hit" in rh.lower():
                     return response, cb
@@ -69,11 +75,10 @@ def duplicate_headers(conn, url, mh, main_status_code, authent):
             return False
     except Exception as e:
         return False
-        
-        
+
 
 def referer_duplicate_headers(conn, url, main_status_code, authent):
-    #VULN_TYPE = "RDH"
+    # VULN_TYPE = "RDH"
     cb = random.randrange(9999)
 
     try:
@@ -84,8 +89,11 @@ def referer_duplicate_headers(conn, url, main_status_code, authent):
         conn.endheaders()
 
         response = conn.getresponse()
-        if response.status != main_status_code and response.status not in EXCLUDE_RESPONSE:
-            #print(f"[{url}?cb={cb}] Statut : {response.status}, Raison : {response.reason}")
+        if (
+            response.status != main_status_code
+            and response.status not in EXCLUDE_RESPONSE
+        ):
+            # print(f"[{url}?cb={cb}] Statut : {response.status}, Raison : {response.reason}")
             for rh in response.headers:
                 if "age" in rh.lower() or "hit" in rh.lower():
                     return response, cb
@@ -94,11 +102,10 @@ def referer_duplicate_headers(conn, url, main_status_code, authent):
             return False
     except Exception as e:
         return False
-        
 
 
 def host_duplicate_headers(conn, host, url, main_status_code, authent):
-    #VULN_TYPE = "HDH"
+    # VULN_TYPE = "HDH"
     cb = random.randrange(9999)
 
     try:
@@ -109,8 +116,11 @@ def host_duplicate_headers(conn, host, url, main_status_code, authent):
         conn.endheaders()
 
         response = conn.getresponse()
-        if response.status != main_status_code and response.status not in EXCLUDE_RESPONSE:
-            #print(f"[{url}?cb={cb}] Statut : {response.status}, Raison : {response.reason}")
+        if (
+            response.status != main_status_code
+            and response.status not in EXCLUDE_RESPONSE
+        ):
+            # print(f"[{url}?cb={cb}] Statut : {response.status}, Raison : {response.reason}")
             for rh in response.headers:
                 if "age" in rh.lower() or "hit" in rh.lower():
                     return response, cb
@@ -119,7 +129,6 @@ def host_duplicate_headers(conn, host, url, main_status_code, authent):
             return False
     except Exception as e:
         return False
-        
 
 
 def MHC(url, req_main, authent, human):
@@ -150,12 +159,14 @@ def MHC(url, req_main, authent, human):
                     payload = f"[Host: {host}, Host: toto.com]"
 
                 print(
-                        f" {Identify.behavior} | {VULN_NAME} | \033[34m{url}?cb={vuln_type_res[1]}\033[0m | {behavior} | PAYLOAD: {Colors.THISTLE}{payload}{Colors.RESET}"
-                    )
+                    f" {Identify.behavior} | {VULN_NAME} | \033[34m{url}?cb={vuln_type_res[1]}\033[0m | {behavior} | PAYLOAD: {Colors.THISTLE}{payload}{Colors.RESET}"
+                )
                 conn.close()
-                verify_cache_poisoning(vuln_type, conn, url, payload, main_status_code, authent, host)
+                verify_cache_poisoning(
+                    vuln_type, conn, url, payload, main_status_code, authent, host
+                )
 
-        #m_heads = ["Authorization", "Accept", "Content-Type", "Cookie", "X-Requested-With", "user-agent"]
+        # m_heads = ["Authorization", "Accept", "Content-Type", "Cookie", "X-Requested-With", "user-agent"]
         m_heads = header_list
         for mh in m_heads:
             DH = duplicate_headers(conn, url, mh, main_status_code, authent)
@@ -165,10 +176,12 @@ def MHC(url, req_main, authent, human):
                 payload = f"[{mh}: xxxx, {mh}: xxxx]"
 
                 print(
-                        f" {Identify.behavior} | {VULN_NAME} | \033[34m{url}?cb={DH[1]}\033[0m | {behavior} | PAYLOAD: {Colors.THISTLE}{payload}{Colors.RESET}"
-                    )
+                    f" {Identify.behavior} | {VULN_NAME} | \033[34m{url}?cb={DH[1]}\033[0m | {behavior} | PAYLOAD: {Colors.THISTLE}{payload}{Colors.RESET}"
+                )
                 conn.close()
-                verify_cache_poisoning(mh, conn, url, payload, main_status_code, authent, host)
+                verify_cache_poisoning(
+                    mh, conn, url, payload, main_status_code, authent, host
+                )
             human_time(human)
             print(f" \033[34m {VULN_NAME} : {mh}\033[0m\r", end="")
             print("\033[K", end="")

@@ -17,6 +17,7 @@ VULN_NAME = "HTTP Method Override"
 CONTENT_DELTA_RANGE = 500
 BIG_CONTENT_DELTA_RANGE = 5000
 
+
 def HMO(url, s, initial_response, authent, human):
     """Function to test for HTTP Method Override vulnerabilities"""
 
@@ -66,7 +67,7 @@ def HMO(url, s, initial_response, authent, human):
         "ACL",
         # Event/Notification methods
         "SUBSCRIBE",
-        "UNSUBSCRIBE", 
+        "UNSUBSCRIBE",
         "NOTIFY",
         "POLL",
         # Binding methods
@@ -220,27 +221,41 @@ def HMO(url, s, initial_response, authent, human):
             )
             human_time(human)
 
-            range_exlusion = range(main_len - CONTENT_DELTA_RANGE, main_len + CONTENT_DELTA_RANGE) if main_len < 10000 else range(main_len - BIG_CONTENT_DELTA_RANGE, main_len + BIG_CONTENT_DELTA_RANGE)
-            #print(range_exlusion)
+            range_exlusion = (
+                range(main_len - CONTENT_DELTA_RANGE, main_len + CONTENT_DELTA_RANGE)
+                if main_len < 10000
+                else range(
+                    main_len - BIG_CONTENT_DELTA_RANGE,
+                    main_len + BIG_CONTENT_DELTA_RANGE,
+                )
+            )
+            # print(range_exlusion)
 
             if probe.status_code != main_status_code and probe.status_code not in [
-                main_status_code, 429, 403
+                main_status_code,
+                429,
+                403,
             ]:
                 reason = (
                     f"DIFFERENT STATUS-CODE {main_status_code} > {probe.status_code}"
                 )
                 status = f"{Identify.behavior}"
                 severity = "behavior"
-            elif len(probe.content) != main_len and len(probe.content) not in range_exlusion and probe.status_code not in [
-                main_status_code, 429, 403
-            ]:
+            elif (
+                len(probe.content) != main_len
+                and len(probe.content) not in range_exlusion
+                and probe.status_code not in [main_status_code, 429, 403]
+            ):
                 reason = (
                     f"DIFFERENT RESPONSE LENGTH {main_len}b > {len(probe.content)}b"
                 )
-                #print(probe.content)
+                # print(probe.content)
                 status = f"{Identify.behavior}"
                 severity = "behavior"
-            elif probe.status_code == main_status_code and len(probe.content) in range_exlusion:
+            elif (
+                probe.status_code == main_status_code
+                and len(probe.content) in range_exlusion
+            ):
                 continue
 
             for _ in range(5):
@@ -254,21 +269,25 @@ def HMO(url, s, initial_response, authent, human):
                 )
                 human_time(human)
             control = s.get(uri, verify=False, timeout=10, auth=authent)
-            if control.status_code == probe.status_code and control.status_code not in [
-                main_status_code,
-                429, 403
-            ]:
+            if (
+                control.status_code == probe.status_code
+                and control.status_code not in [main_status_code, 429, 403]
+            ):
                 reason = (
                     f"DIFFERENT STATUS-CODE {main_status_code} > {control.status_code}"
                 )
                 status = f"{Identify.confirmed}"
                 severity = "confirmed"
 
-            if len(control.content) == len(probe.content) and len(probe.content) not in range_exlusion and control.status_code not in [429, 403]:
+            if (
+                len(control.content) == len(probe.content)
+                and len(probe.content) not in range_exlusion
+                and control.status_code not in [429, 403]
+            ):
                 reason = (
                     f"DIFFERENT RESPONSE LENGTH {main_len}b > {len(control.content)}b"
                 )
-                #print(control.content)
+                # print(control.content)
                 status = f"{Identify.confirmed}"
                 severity = "confirmed"
 
@@ -278,7 +297,15 @@ def HMO(url, s, initial_response, authent, human):
                 )
                 if proxy.proxy_enabled:
                     from utils.proxy import proxy_request
-                    proxy_request(s, "GET", uri, headers=probe_headers, data=None, severity=severity)
+
+                    proxy_request(
+                        s,
+                        "GET",
+                        uri,
+                        headers=probe_headers,
+                        data=None,
+                        severity=severity,
+                    )
 
         except requests.exceptions.ConnectionError as e:
             logger.exception(e)

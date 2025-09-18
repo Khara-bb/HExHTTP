@@ -9,13 +9,13 @@ def cloudflare(url, s):
     #Default Cache Times:
         By default, positive response codes:
         200 OK, 204 No Content, and 206 Partial Content, are cached for 120 minutes (two hours).
-        - 204: 
+        - 204:
             POST exemple.com Content-Type: application/json (void)
             DELETE exemple.com
         - 206:
             GET exemple.com Range: bytes=0-499
-        Redirects (301 Moved Permanently, 302 Found, etc.) are cached for 20 minutes. 
-        404 Not Found and 410 Gone, and similar errors are cached for only 3 minutes. 
+        Redirects (301 Moved Permanently, 302 Found, etc.) are cached for 20 minutes.
+        404 Not Found and 410 Gone, and similar errors are cached for only 3 minutes.
         405 Method Not Allowed, and 500 (server) series errors only last for just 1 minute.
 
     # https://developers.cloudflare.com/pages/configuration/debugging-pages/
@@ -26,4 +26,6 @@ def cloudflare(url, s):
     if cf_loop in [301, 302, 303]:
         print(cf_loop.headers)
         if "CF-Cache-Status: HIT" in cf_loop.headers:
-            print(f"\033[32m   └──\033[0m Potential redirect loop exploit possible with \033[32m{headers}\033[0m payload")
+            print(
+                f"\033[32m   └──\033[0m Potential redirect loop exploit possible with \033[32m{headers}\033[0m payload"
+            )

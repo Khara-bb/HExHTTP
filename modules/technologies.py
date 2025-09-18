@@ -10,6 +10,7 @@ from modules.technos.cloudflare import cloudflare
 from modules.technos.imperva import imperva
 from modules.technos.vercel import vercel
 
+
 class technology:
     """
     forwarded:

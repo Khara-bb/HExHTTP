@@ -29,7 +29,7 @@ desc_method = {
     501: f"\033[31m501 Not Implemented{Colors.RESET}",
     502: f"\033[31m502 Bad Gateway{Colors.RESET}",
     301: f"{Colors.REDIR}301 Moved Permanently{Colors.RESET}",
-    302: f"{Colors.REDIR}302 Moved Temporarily{Colors.RESET}"
+    302: f"{Colors.REDIR}302 Moved Temporarily{Colors.RESET}",
 }
 
 header = {
@@ -103,9 +103,9 @@ def verify_connect_method(url, http):
         "127.0.0.1:80",
         "192.168.1.1:80",
         "10.0.0.1:80",
-        "172.16.0.1:80"
+        "172.16.0.1:80",
     ]
-    
+
     results = []
     for test_url in connect_tests:
         try:
@@ -115,16 +115,16 @@ def verify_connect_method(url, http):
         except Exception as e:
             results.append((test_url, "ERROR", 0))
             logger.debug(f"CONNECT test error on {test_url}: {e}")
-    
+
     status_codes = [r[1] for r in results if r[1] != "ERROR"]
-    
+
     if len(set(status_codes)) == 1 and len(status_codes) > 1:
         return True, f""
-    
+
     success_on_invalid = any(r[1] in [200, 201, 202, 204] for r in results[2:])
     if success_on_invalid:
         return True, ""
-    
+
     return False, "Seems legitimate"
 
 
@@ -133,7 +133,7 @@ def check_other_methods(ml, url, http, pad, results_tracker):
         test_url = url
         if ml == "DELETE":
             test_url = f"{url}plopiplop.css"
-            
+
         resp = http.request(ml, test_url)
         rs = resp.status
         resp_h = resp.headers
@@ -160,67 +160,83 @@ def check_other_methods(ml, url, http, pad, results_tracker):
                 or "x-nextjs-cache" in rh
             ):
                 cache_status = True
-                
+
         len_req = len(resp.data.decode("utf-8"))
-        
+
         # Créer une clé unique pour le tri (status + length)
         result_key = (rs, len_req)
-        results_tracker[result_key].append({
-            'method': ml,
-            'status': rs,
-            'status_display': rs_display,
-            'length': len_req,
-            'cache_status': cache_status,
-            'response_data': resp.data
-        })
+        results_tracker[result_key].append(
+            {
+                "method": ml,
+                "status": rs,
+                "status_display": rs_display,
+                "length": len_req,
+                "cache_status": cache_status,
+                "response_data": resp.data,
+            }
+        )
 
     except urllib3.exceptions.MaxRetryError:
-        results_tracker[('ERROR', 0)].append({
-            'method': ml,
-            'status': 'ERROR',
-            'status_display': 'Error due to too many redirects',
-            'length': 0,
-            'cache_status': False,
-            'response_data': b''
-        })
+        results_tracker[("ERROR", 0)].append(
+            {
+                "method": ml,
+                "status": "ERROR",
+                "status_display": "Error due to too many redirects",
+                "length": 0,
+                "cache_status": False,
+                "response_data": b"",
+            }
+        )
     except Exception as e:
         logger.exception(e)
-        results_tracker[('ERROR', 0)].append({
-            'method': ml,
-            'status': 'ERROR',
-            'status_display': f'Error: {str(e)}',
-            'length': 0,
-            'cache_status': False,
-            'response_data': b''
-        })
+        results_tracker[("ERROR", 0)].append(
+            {
+                "method": ml,
+                "status": "ERROR",
+                "status_display": f"Error: {str(e)}",
+                "length": 0,
+                "cache_status": False,
+                "response_data": b"",
+            }
+        )
 
 
 def display_deduplicated_results(results_tracker, pad, url, http):
     displayed_groups = set()
-    
+
     for result_key, methods_list in results_tracker.items():
         if len(methods_list) >= 3:
             if result_key not in displayed_groups:
                 first_method = methods_list[0]
-                space = " " * (pad - len(first_method['method']) + 1)
-                other_methods = [m['method'] for m in methods_list[1:]]
-                
-                print(f" ├── {first_method['method']}{space}{first_method['status_display']:<3}  "
-                      f"[{first_method['length']} bytes]{'':<2} "
-                      f"({Colors.CYAN}+{len(other_methods)} similar{Colors.RESET})")#{', '.join(other_methods)})
-                
+                space = " " * (pad - len(first_method["method"]) + 1)
+                other_methods = [m["method"] for m in methods_list[1:]]
+
+                print(
+                    f" ├── {first_method['method']}{space}{first_method['status_display']:<3}  "
+                    f"[{first_method['length']} bytes]{'':<2} "
+                    f"({Colors.CYAN}+{len(other_methods)} similar{Colors.RESET})"
+                )  # {', '.join(other_methods)})
+
                 displayed_groups.add(result_key)
         else:
             for method_result in methods_list:
-                space = " " * (pad - len(method_result['method']) + 1)
-                
+                space = " " * (pad - len(method_result["method"]) + 1)
+
                 connect_info = ""
-                if method_result['method'] == "CONNECT" and method_result['status'] not in ['ERROR', 405, 501]:
+                if method_result["method"] == "CONNECT" and method_result[
+                    "status"
+                ] not in ["ERROR", 405, 501]:
                     is_fp, fp_reason = verify_connect_method(url, http)
-                    connect_info = f"[{Colors.GREEN}{'VALID'}: {fp_reason}{Colors.RESET}]" if not is_fp else ''
-                
-                print(f" ├── {method_result['method']}{space}{method_result['status_display']:<3}  "
-                      f"[{method_result['length']} bytes]{'':<2} {connect_info}")
+                    connect_info = (
+                        f"[{Colors.GREEN}{'VALID'}: {fp_reason}{Colors.RESET}]"
+                        if not is_fp
+                        else ""
+                    )
+
+                print(
+                    f" ├── {method_result['method']}{space}{method_result['status_display']:<3}  "
+                    f"[{method_result['length']} bytes]{'':<2} {connect_info}"
+                )
 
 
 def check_methods(url, custom_header, authent, human):
@@ -261,15 +277,15 @@ def check_methods(url, custom_header, authent, human):
         with open(list_path, "r") as method_list:
             method_list = method_list.read().splitlines()
             pad = max(len(m) for m in method_list)
-            
+
             results_tracker = defaultdict(list)
-            
+
             for ml in method_list:
                 check_other_methods(ml, url, http, pad, results_tracker)
                 human_time(human)
-            
+
             display_deduplicated_results(results_tracker, pad, url, http)
-            
+
     except FileNotFoundError:
         logger.error(f"Methods list file not found: {list_path}")
         print(f" ├── Error: Methods list file not found: {list_path}")

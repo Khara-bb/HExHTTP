@@ -1,11 +1,9 @@
 # Author:
 # Nathan Faillenot (codejump - @c0dejump)
 
-import pathlib
-import setuptools
-from setuptools import setup, find_packages, Extension
+from setuptools import find_packages, setup
 
-with open("README.md", "r", encoding="utf-8") as fh:
+with open("README.md", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
@@ -20,13 +18,13 @@ setup(
     include_package_data=True,
     url="https://github.com/c0dejump/HExHTTP/",
     install_requires=[
-        'requests==2.31.0',
-        'wafw00f==2.2.0',
-        'urllib3==2.2.1',
-        'notify-py==0.3.42',
-        'pync==2.0.3',
-        'bs4',
-        'httpx'
+        "requests==2.31.0",
+        "wafw00f==2.2.0",
+        "urllib3==2.2.1",
+        "notify-py==0.3.42",
+        "pync==2.0.3",
+        "bs4",
+        "httpx",
     ],
     project_urls={
         "Bug Tracker": "https://github.com/c0dejump/HExHTTP/issues",

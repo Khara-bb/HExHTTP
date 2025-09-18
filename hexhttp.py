@@ -1,38 +1,35 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-import sys, argparse, re
+import sys
 from datetime import datetime
 
+# threading
+from queue import Empty, Queue
+
+# utils
+import utils.proxy as proxy
 from cli import args
 
-#utils
-import utils.proxy as proxy
-from utils.style import Colors
-from utils.utils import *
-
-#header checks
-from modules.header_checks.check_localhost import check_localhost
-from modules.header_checks.methods import check_methods
-from modules.header_checks.http_version import check_http_version
-from modules.header_checks.vhosts import check_vhost
-from modules.header_checks.cachetag_header import check_cachetag_header
-from modules.header_checks.server_error import get_server_error
-
-#cp & cpdos
+# cp & cpdos
 from modules.cp_check.cache_poisoning_nf_files import check_cache_files
 from modules.cp_check.methods_poisoning import check_methods_poisoning
 from modules.CPDoS import check_CPDoS
 from modules.CVE import check_cpcve
-from tools.autopoisoner.autopoisoner import check_cache_poisoning
+from modules.header_checks.cachetag_header import check_cachetag_header
 
-#others
+# header checks
+from modules.header_checks.check_localhost import check_localhost
+from modules.header_checks.http_version import check_http_version
+from modules.header_checks.methods import check_methods
+from modules.header_checks.server_error import get_server_error
+from modules.header_checks.vhosts import check_vhost
+
+# others
 from modules.logging_config import configure_logging
 from modules.technologies import technology
-
-
-#threading
-from queue import Queue, Empty
+from tools.autopoisoner.autopoisoner import check_cache_poisoning
+from utils.style import Colors
+from utils.utils import get_domain_from_url, requests
 
 try:
     enclosure_queue = Queue()
@@ -52,7 +49,14 @@ def get_technos(a_tech, req_main, url, s):
         "apache": ["apache", "tomcat"],
         "nginx": ["nginx"],
         "envoy": ["envoy"],
-        "akamai": ["akamai", "x-akamai", "x-akamai-transformed", "akamaighost", "akamaiedge", "edgesuite"],
+        "akamai": [
+            "akamai",
+            "x-akamai",
+            "x-akamai-transformed",
+            "akamaighost",
+            "akamaiedge",
+            "edgesuite",
+        ],
         "imperva": ["imperva"],
         "fastly": ["fastly"],
         "cloudflare": ["cf-ray", "cloudflare", "cf-cache-status", "cf-ray"],
@@ -87,7 +91,7 @@ def fuzz_x_header(url):
 """
 
 
-def process_modules(url, s, a_tech):
+def process_modules(url, s, a_tech, authent):
     domain = get_domain_from_url(url)
     base_header = []
 
@@ -97,13 +101,17 @@ def process_modules(url, s, a_tech):
         )
 
         print("\033[34m⟙\033[0m")
-        #print(s.headers)
+        # print(s.headers)
         start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"{Colors.SALMON}[STARTED]{Colors.RESET} {start_time}")
         print(f" URL: {url}")
         print(f" URL response: {req_main.status_code}")
         print(f" URL response size: {len(req_main.content)} bytes")
-        print(f" Proxy: {Colors.RED}OFF{Colors.RESET}" if not proxy.proxy_enabled else f" Proxy: {Colors.GREEN}ON{Colors.RESET}")
+        print(
+            f" Proxy: {Colors.RED}OFF{Colors.RESET}"
+            if not proxy.proxy_enabled
+            else f" Proxy: {Colors.GREEN}ON{Colors.RESET}"
+        )
         print("\033[34m⟘\033[0m")
         if req_main.status_code not in [200, 302, 301, 403, 401] and not url_file:
             choice = input(
@@ -130,7 +138,7 @@ def process_modules(url, s, a_tech):
 
         if not only_cp:
             techno = get_technos(a_tech, req_main, url, s)
-        #fuzz_x_header(url) #TODO
+        # fuzz_x_header(url) #TODO
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
         pass
@@ -156,9 +164,10 @@ def main(urli, s, auth):
 
     if auth:
         from utils.utils import check_auth
+
         authent = check_auth(auth, urli)
     else:
-        authent = False
+        authent = None
 
     if url_file and threads != 1337:
         try:
@@ -168,7 +177,7 @@ def main(urli, s, auth):
                 except Empty:
                     break
                 try:
-                    process_modules(url, s, a_tech)
+                    process_modules(url, s, a_tech, authent)
                 finally:
                     urli.task_done()
         except KeyboardInterrupt:
@@ -181,7 +190,7 @@ def main(urli, s, auth):
             urli.task_done()
     else:
         try:
-            process_modules(urli, s, a_tech)
+            process_modules(urli, s, a_tech, authent)
         except KeyboardInterrupt:
             print(" ! Canceled by keyboard interrupt (Ctrl-C)")
             sys.exit()
@@ -217,19 +226,9 @@ if __name__ == "__main__":
         s.headers.update(
             {
                 "User-Agent": user_agent,
-                #"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                #"Accept-Language": "en-US,en;q=0.5",
-                #"Accept-Encoding": "gzip, deflate, br",
-                #"Connection": "keep-alive",
-                #"Upgrade-Insecure-Requests": "1",
-                #"Sec-Fetch-Dest": "document",
-                #"Sec-Fetch-Mode": "navigate",
-                #"Sec-Fetch-Site": "none",
-                #"Sec-Fetch-User": "?1",
-                #"Priority": "u=4",
             }
         )
-        
+
         if custom_header:
             try:
                 custom_headers = parse_headers(custom_header)
@@ -242,10 +241,11 @@ if __name__ == "__main__":
             test_proxy = proxy.test_proxy_connection()
             if test_proxy:
                 proxy.proxy_enabled = custom_proxy
-
+        
+        urls: list[str]= []
         if url_file and threads != 1337:
-            with open(url_file, "r") as urls:
-                urls = urls.read().splitlines()
+            with open(url_file) as urls_file:
+                urls = urls_file.read().splitlines()
             try:
                 for url in urls:
                     enclosure_queue.put(url)
@@ -268,8 +268,8 @@ if __name__ == "__main__":
                 print(f"Error : {e}")
             print("Scan finish")
         elif url_file and threads == 1337:
-            with open(url_file, "r") as urls:
-                urls = urls.read().splitlines()
+            with open(url_file) as urls_file:
+                urls = urls_file.read().splitlines()
                 for url in urls:
                     main(url, s, auth)
         else:

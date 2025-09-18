@@ -14,6 +14,7 @@ logger = configure_logger(__name__)
 
 VULN_NAME = "HTTP Header Oversize"
 
+
 def HHO(url, s, main_response, authent, human):
     """
     Perform a Header Oversize Denial of Service (HHO DOS) attack on the given URL.
@@ -44,7 +45,12 @@ def HHO(url, s, main_response, authent, human):
 
         try:
             probe = s.get(
-                url, headers=h, auth=authent, allow_redirects=False, verify=False, timeout=10
+                url,
+                headers=h,
+                auth=authent,
+                allow_redirects=False,
+                verify=False,
+                timeout=10,
             )
 
             logger.debug(
@@ -78,22 +84,31 @@ def HHO(url, s, main_response, authent, human):
 
     if error_detected:
         try:
-            verify = s.get(url, auth=authent, allow_redirects=False, verify=False, timeout=10)
+            verify = s.get(
+                url, auth=authent, allow_redirects=False, verify=False, timeout=10
+            )
             if (
                 verify.status_code in [400, 413, 500, 502]
                 and verify.status_code != main_status_code
             ):
-                reason = f"DIFFERENT STATUS-CODE {main_status_code} > {verify.status_code}"
+                reason = (
+                    f"DIFFERENT STATUS-CODE {main_status_code} > {verify.status_code}"
+                )
                 status = f"{Identify.confirmed}"
                 severity = "confirmed"
 
             else:
-                reason = f"DIFFERENT STATUS-CODE {main_status_code} > {probe.status_code}"
+                reason = (
+                    f"DIFFERENT STATUS-CODE {main_status_code} > {probe.status_code}"
+                )
                 status = f"{Identify.behavior}"
                 severity = "behavior"
-            print(f" {status} | HHO DOS | \033[34m{url}\033[0m | {reason} | PAYLOAD: X-Oversized-Header-x: Big-Value-0*{len(big_value) - len('Big-Value-0')}")
+            print(
+                f" {status} | HHO DOS | \033[34m{url}\033[0m | {reason} | PAYLOAD: X-Oversized-Header-x: Big-Value-0*{len(big_value) - len('Big-Value-0')}"
+            )
             if proxy.proxy_enabled:
                 from utils.proxy import proxy_request
+
                 proxy_request(s, "GET", url, headers=h, data=None, severity=severity)
 
         except requests.exceptions.ConnectionError as e:

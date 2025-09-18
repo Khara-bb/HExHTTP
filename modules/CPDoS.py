@@ -1,36 +1,41 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-from utils.utils import random, re, sys, configure_logger
-
+from modules.cpdos.backslash import backslash_poisoning
 from modules.cpdos.basic_cpdos import cpdos_main
-from modules.cpdos.waf_rules import waf_rules
+from modules.cpdos.hbh import HBH
+from modules.cpdos.hhcn import HHCN
 from modules.cpdos.hho import HHO
 from modules.cpdos.hmc import HMC
 from modules.cpdos.hmo import HMO
-from modules.cpdos.hhcn import HHCN
-from modules.cpdos.hbh import HBH
-from modules.cpdos.ocd import OCD
 from modules.cpdos.multiple_headers import MHC
+from modules.cpdos.ocd import OCD
 from modules.cpdos.path_traversal import path_traversal_check
-from modules.cpdos.backslash import backslash_poisoning
+from utils.utils import configure_logger, random, re, requests, sys
 
 logger = configure_logger(__name__)
 
 
-def crawl_files(url, s, req_main, domain, custom_header, authent, human):
+def crawl_files(
+    url: str,
+    s:requests.Session,
+    req_main: requests.Response,
+    domain: str,
+    custom_header: dict,
+    authent: requests.auth.AuthBase,
+    human: bool
+) -> None: 
     try:
         regexp1 = r'(?<=src=")(\/[^\/].+?\.(js|css|html|svg))(?=")'
         regexp2 = r'(?<=href=")(\/[^\/].+?\.(js|css|html|svg))(?=")'
-        #regexp3 = r'(?<=src=")(\/[^\/].+?)(?=")'
-        #regexp4 = r'(?<=href=")(\/[^\/].+?)(?=")'
+        # regexp3 = r'(?<=src=")(\/[^\/].+?)(?=")'
+        # regexp4 = r'(?<=href=")(\/[^\/].+?)(?=")'
 
         responseText = req_main.text
 
         filesURL = re.findall(regexp1, responseText)
         filesURL += re.findall(regexp2, responseText)
-        #filesURL = re.findall(regexp3, responseText)
-        #filesURL += re.findall(regexp4, responseText)
+        # filesURL = re.findall(regexp3, responseText)
+        # filesURL += re.findall(regexp4, responseText)
 
         for fu in filesURL:
             if "<" not in fu[0]:
@@ -42,8 +47,10 @@ def crawl_files(url, s, req_main, domain, custom_header, authent, human):
                 elif uri.startswith("http://"):
                     uri = f"https://{uri[7:].replace('//', '/')}"
 
-                #print(uri)
-                run_cpdos_modules(uri, s, req_main, domain, custom_header, authent, human)
+                # print(uri)
+                run_cpdos_modules(
+                    uri, s, req_main, domain, custom_header, authent, human
+                )
                 backslash_poisoning(uri, s)
 
     except Exception as e:
@@ -58,13 +65,13 @@ def run_cpdos_modules(url, s, req_main, domain, custom_header, authent, human):
     try:
         req_main = s.get(
             uri,
-            #headers=headers,
+            # headers=headers,
             verify=False,
             allow_redirects=False,
             timeout=15,
             auth=authent,
         )
-        #print(req_main.status_code)
+        # print(req_main.status_code)
         logger.debug(req_main.content)
 
         HHO(uri, s, req_main, authent, human)

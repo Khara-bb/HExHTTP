@@ -63,12 +63,13 @@ def check_cached_status(url, s, pk, main_status_code, authent):
         else f"\033[32m{cache_status}\033[0m"
     )
     if confirmed:
-        #print(headers)
+        # print(headers)
         print(
             f" {Identify.confirmed} | CPDoSError {main_status_code} > {req.status_code} | CACHETAG : {cache_status} | \033[34m{url}\033[0m | PAYLOAD: {Colors.THISTLE}{pk}{Colors.RESET}"
         )
         if proxy.proxy_enabled:
             from utils.proxy import proxy_request
+
             proxy_request(s, "GET", url, headers=pk, data=None, severity="confirmed")
         behavior = False
         confirmed = False
@@ -78,6 +79,7 @@ def check_cached_status(url, s, pk, main_status_code, authent):
         )
         if proxy.proxy_enabled:
             from utils.proxy import proxy_request
+
             proxy_request(s, "GET", url, headers=pk, data=None, severity="behavior")
 
 
@@ -129,6 +131,7 @@ def check_cached_len(url, s, pk, main_len, authent):
         )
         if proxy.proxy_enabled:
             from utils.proxy import proxy_request
+
             proxy_request(s, "GET", url, headers=pk, data=None, severity="confirmed")
         behavior = False
     elif behavior:
@@ -137,6 +140,7 @@ def check_cached_len(url, s, pk, main_len, authent):
         )
         if proxy.proxy_enabled:
             from utils.proxy import proxy_request
+
             proxy_request(s, "GET", url, headers=pk, data=None, severity="behavior")
 
 
@@ -147,7 +151,7 @@ def cpdos_main(url, s, initial_response, authent, human):
     blocked = 0
     for pk in payloads_keys:
         # pk = pk.encode(encoding='UTF-8')
-        #print(pk)
+        # print(pk)
         uri = f"{url}{random.randrange(99999)}"
         try:
             req = s.get(
@@ -195,7 +199,7 @@ def cpdos_main(url, s, initial_response, authent, human):
                 ):
                     check_cached_len(uri, s, pk, main_len, authent)
             human_time(human)
-            
+
             if len(list(pk.values())[0]) < 50 and len(list(pk.keys())[0]) < 50:
                 sys.stdout.write(f"\033[34m {pk}\033[0m\r")
                 sys.stdout.write("\033[K")

@@ -56,7 +56,7 @@ def configure_logger(module_name: str) -> logging.Logger:
     return logger
 
 
-def configure_logging(verbose:int, log: int, log_file: str = "./logs/%Y%m%d_%H%M.log"):
+def configure_logging(verbose: int, log: int, log_file: str = "./logs/%Y%m%d_%H%M.log"):
     """
     Configures the logging level for the root logger.
 

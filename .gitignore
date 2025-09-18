@@ -1,9 +1,9 @@
-.py3
-__pycache__
-*.txt
-todo.md
 dev/
 logs/*.log
-dist
-*.egg-info
 .mypy_cache/
+.venv/
+dist
+__pycache__
+.py3
+todo.md
+*.egg-info

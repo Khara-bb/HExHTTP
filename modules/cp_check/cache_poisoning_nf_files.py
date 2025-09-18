@@ -6,36 +6,38 @@ Web Cache Poisoning on unkeyed Header
 https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws#using-web-cache-poisoning-to-exploit-unsafe-handling-of-resource-imports
 """
 
-from utils.utils import requests, random, re, sys, configure_logger
+from utils.utils import requests, random, sys, configure_logger
 from utils.style import Identify, Colors
 from modules.lists import header_list
 import utils.proxy as proxy
 
 logger = configure_logger(__name__)
 
+
 def valid_reflection(uri, s, pk, authent, matching_forward):
     for _ in range(0, 10):
-        req = s.get(
-                uri,
-                headers=pk,
-                verify=False,
-                auth=authent,
-                timeout=10,
-                allow_redirects=False,
-            )
+        s.get(
+            uri,
+            headers=pk,
+            verify=False,
+            auth=authent,
+            timeout=10,
+            allow_redirects=False,
+        )
     req_valid = s.get(
-                uri,
-                verify=False,
-                auth=authent,
-                timeout=10,
-                allow_redirects=False,
-            )
+        uri,
+        verify=False,
+        auth=authent,
+        timeout=10,
+        allow_redirects=False,
+    )
     if matching_forward in req_valid.text:
         print(
             f" {Identify.confirmed} | BODY REFLECTION | RESOURCE FILE | \033[34m{uri}\033[0m | PAYLOAD: {Colors.THISTLE}{pk if len(pk) < 60 else pk[0:60]}{Colors.RESET}"
         )
         if proxy.proxy_enabled:
             from utils.proxy import proxy_request
+
             proxy_request(s, "GET", uri, headers=pk, data=None)
     elif matching_forward in req_valid.headers:
         print(
@@ -43,6 +45,7 @@ def valid_reflection(uri, s, pk, authent, matching_forward):
         )
         if proxy.proxy_enabled:
             from utils.proxy import proxy_request
+
             proxy_request(s, "GET", uri, headers=pk, data=None)
 
 
@@ -64,6 +67,7 @@ def check_reflection(url, s, authent, matching_forward):
             )
             if proxy.proxy_enabled:
                 from utils.proxy import proxy_request
+
                 proxy_request(s, "GET", uri, headers=pk, data=None)
             valid_reflection(uri, s, pk, authent, matching_forward)
         elif matching_forward in req.headers:
@@ -72,6 +76,7 @@ def check_reflection(url, s, authent, matching_forward):
             )
             if proxy.proxy_enabled:
                 from utils.proxy import proxy_request
+
                 proxy_request(s, "GET", uri, headers=pk, data=None)
             valid_reflection(uri, s, pk, authent, matching_forward)
         else:
@@ -79,7 +84,6 @@ def check_reflection(url, s, authent, matching_forward):
         if len(list(pk.values())[0]) < 50:
             sys.stdout.write(f"\033[34m {pk}\033[0m\r")
             sys.stdout.write("\033[K")
-
 
 
 def check_cache_files(uri, s, custom_header, authent):

@@ -9,7 +9,13 @@ from typing import List
 from modules.lists.payloads_errors import payloads_keys
 from modules.lists.all_payload_keys import all_payload_keys
 
-__all__ = ["load_payloads_from", "header_list", "mobile_user_agents", "payloads_keys", "all_payload_keys"]
+__all__ = [
+    "load_payloads_from",
+    "header_list",
+    "mobile_user_agents",
+    "payloads_keys",
+    "all_payload_keys",
+]
 
 header_list = []
 mobile_user_agents = []

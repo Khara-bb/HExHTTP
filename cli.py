@@ -1,9 +1,13 @@
 import argparse
-from static.banner import print_banner
-from modules.logging_config import valid_log_level
 import sys
 
-def args():
+from modules.logging_config import valid_log_level
+from static.banner import print_banner
+
+print_banner()
+
+
+def args() -> argparse.Namespace:
     """
     Parses command-line arguments and returns them.
 
@@ -34,9 +38,9 @@ def args():
 
     If no argument is provided, the function will print the help message and exit.
     """
-    parser = argparse.ArgumentParser(description=print_banner())
+    parser = argparse.ArgumentParser(description="HExHTTP - HTTP Cache Poisoning Toolkit")
 
-    group = parser.add_argument_group('\033[34m> General\033[0m')
+    group = parser.add_argument_group("\033[34m> General\033[0m")
     group.add_argument(
         "-u", "--url", dest="url", help="URL to test \033[31m[required]\033[0m"
     )
@@ -52,7 +56,7 @@ def args():
         action="store_true",
     )
 
-    group = parser.add_argument_group('\033[34m> Request Settings\033[0m')
+    group = parser.add_argument_group("\033[34m> Request Settings\033[0m")
     group.add_argument(
         "-H",
         "--header",
@@ -66,7 +70,7 @@ def args():
         "--user-agent",
         dest="user_agent",
         help="Add a custom User Agent",
-        default = "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
+        default="Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0",
     )
     group.add_argument(
         "-a",
@@ -93,7 +97,7 @@ def args():
         required=False,
     )
 
-    group = parser.add_argument_group('\033[34m> Log settings\033[0m')
+    group = parser.add_argument_group("\033[34m> Log settings\033[0m")
     group.add_argument(
         "-l",
         "--log",
@@ -117,14 +121,14 @@ def args():
         help="Increase verbosity (can be used multiple times)",
     )
 
-    group = parser.add_argument_group('\033[34m> Tips\033[0m')
+    group = parser.add_argument_group("\033[34m> Tips\033[0m")
     group.add_argument(
         "-p",
         "--proxy",
         dest="custom_proxy",
         help="proxy activation, can be modified in utils/proxy.py",
         required=False,
-        action="store_true"
+        action="store_true",
     )
     group.add_argument(
         "--ocp",
@@ -132,9 +136,8 @@ def args():
         dest="only_cp",
         help="Only cache poisoning modules",
         required=False,
-        action="store_true"
+        action="store_true",
     )
-
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)

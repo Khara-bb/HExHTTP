@@ -14,6 +14,7 @@ logger = configure_logger(__name__)
 
 VULN_NAME = "HTTP Meta Character"
 
+
 def check_meta_character(url, s, main_status_code, authent, meta_character, human):
     """Probe and Verify the server for a meta character vulnerability"""
 
@@ -46,11 +47,14 @@ def check_meta_character(url, s, main_status_code, authent, meta_character, huma
         )
         if proxy.proxy_enabled:
             from utils.proxy import proxy_request
-            proxy_request(s, "GET", url, headers=headers, data=None, severity="confirmed")
+
+            proxy_request(
+                s, "GET", url, headers=headers, data=None, severity="confirmed"
+            )
     human_time(human)
 
 
-def HMC(url, s, req_main, authent, human): # pylint: disable=invalid-name
+def HMC(url, s, req_main, authent, human):  # pylint: disable=invalid-name
     """Prepare the list of meta characters to check for"""
     main_status_code = req_main.status_code
 
@@ -68,7 +72,9 @@ def HMC(url, s, req_main, authent, human): # pylint: disable=invalid-name
     ]
     for meta_character in meta_characters:
         try:
-            check_meta_character(url, s, main_status_code, authent, meta_character, human)
+            check_meta_character(
+                url, s, main_status_code, authent, meta_character, human
+            )
 
         except requests.exceptions.ConnectionError as e:
             logger.exception(e)

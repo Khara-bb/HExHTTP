@@ -6,7 +6,13 @@ Attempts to find Cache Poisoning with Host Header Case Normalization (HHCN)
 https://youst.in/posts/cache-key-normalization-denial-of-service/
 """
 
-from utils.utils import random, requests, get_domain_from_url, configure_logger, CONTENT_DELTA_RANGE
+from utils.utils import (
+    random,
+    requests,
+    get_domain_from_url,
+    configure_logger,
+    CONTENT_DELTA_RANGE,
+)
 from utils.style import Identify, Colors
 import utils.proxy as proxy
 
@@ -52,7 +58,11 @@ def HHCN(url, s, main_response, authent, content_delta_range=CONTENT_DELTA_RANGE
         )
         probe_size = len(probe.content)
         behavior = ""
-        if not (main_response_size - content_delta_range < probe_size < main_response_size + content_delta_range) or (main_response.status_code != probe.status_code):
+        if not (
+            main_response_size - content_delta_range
+            < probe_size
+            < main_response_size + content_delta_range
+        ) or (main_response.status_code != probe.status_code):
             if len(probe.headers) > 0:
                 for rf in probe.headers:
                     if "cache" in rf.lower() or "age" in rf.lower():
@@ -67,23 +77,23 @@ def HHCN(url, s, main_response, authent, content_delta_range=CONTENT_DELTA_RANGE
                             )
                     else:
                         req_hhcn_bis = s.get(
-                                url,
-                                headers=headers,
-                                verify=False,
-                                timeout=10,
-                                auth=authent,
-                                allow_redirects=False,
-                            )
-                        break;
+                            url,
+                            headers=headers,
+                            verify=False,
+                            timeout=10,
+                            auth=authent,
+                            allow_redirects=False,
+                        )
+                        break
             else:
                 req_hhcn_bis = s.get(
-                                url,
-                                headers=headers,
-                                verify=False,
-                                timeout=10,
-                                auth=authent,
-                                allow_redirects=False,
-                            )
+                    url,
+                    headers=headers,
+                    verify=False,
+                    timeout=10,
+                    auth=authent,
+                    allow_redirects=False,
+                )
             if not (
                 main_response_size - content_delta_range
                 < probe_size
@@ -106,23 +116,33 @@ def HHCN(url, s, main_response, authent, content_delta_range=CONTENT_DELTA_RANGE
 
             if behavior and proxy.proxy_enabled:
                 from utils.proxy import proxy_request
+
                 proxy_request(s, "GET", url, headers=headers, data=None)
 
             control = s.get(url, verify=False, timeout=10, auth=authent)
 
-            if behavior and len(req_hhcn_bis.content) == len(control.content) and len(control.content) != main_response_size:
+            if (
+                behavior
+                and len(req_hhcn_bis.content) == len(control.content)
+                and len(control.content) != main_response_size
+            ):
                 confirmed = f"DIFFERENT RESPONSE LENGTH | {main_response_size}b > {len(control.content)}b"
                 print(
                     f" {Identify.confirmed} | HHCN | \033[34m{url}\033[0m | {confirmed} | {Colors.THISTLE}{payload}{Colors.RESET}"
                 )
 
-            if behavior and req_hhcn_bis.status_code == control.status_code and control.status_code != main_response.status_code:
+            if (
+                behavior
+                and req_hhcn_bis.status_code == control.status_code
+                and control.status_code != main_response.status_code
+            ):
                 confirmed = f"DIFFERENT STATUS-CODE | {main_response.status_code} > {control.status_code}"
                 print(
                     f" {Identify.confirmed} | HHCN | \033[34m{url}\033[0m | {confirmed} | {Colors.THISTLE}{payload}{Colors.RESET}"
                 )
             if confirmed and proxy.proxy_enabled:
                 from utils.proxy import proxy_request
+
                 proxy_request(s, "GET", url, headers=headers, data=None)
 
         print(f" \033[34m {VULN_NAME} : {headers}\033[0m\r", end="")
