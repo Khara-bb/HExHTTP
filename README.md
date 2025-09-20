@@ -12,7 +12,7 @@
 ## Installation
 
 
-Follow these steps to install **HExHTTP**:
+Follow these steps to install **HExHTTP**: 
 
 1. **Clone the repository** to your local machine:
    ```bash
